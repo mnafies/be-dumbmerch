@@ -34,7 +34,7 @@ pipeline {
                 sshagent([cred]) {
                     sh """ssh -o StrictHostKeyChecking=no ${server} << EOF
                         cd ${dir}
-                        docker build -t ${imagename}:latest .
+                        docker build -t ${dockerusername}/${imagename}:latest .
                         exit
                         EOF
                     """
@@ -47,11 +47,9 @@ pipeline {
                 sshagent([cred]) {
                     sh """ssh -o StrictHostKeyChecking=no ${server} << EOF
                         cd ${dir}
-                        docker container stop ${imagename}
-                        docker container rm ${imagename}
-                        docker run -d -p 3000:3000 --name="${imagename}"  ${imagename}:latest
-                        docker container stop ${imagename}
-                        docker container rm ${imagename}
+                        docker run -d -p 3000:3000 --name="${imagename}"  ${dockerusername}/${imagename}:latest
+                        docker container stop ${dockerusername}/${imagename}
+                        docker container rm ${dockerusername}/${imagename}
                         exit
                         EOF
                     """
@@ -63,10 +61,8 @@ pipeline {
             steps {
                sshagent([cred]) {
 			    sh """ssh -o StrictHostKeyChecking=no ${server} << EOF
-				docker tag ${imagename}:latest ${dockerusername}/${imagename}:latest
 				docker image push ${dockerusername}/${imagename}:latest
-				docker image rm ${dockerusername}/${imagename}:latest
-				docker image rm ${imagename}:latest
+				docker rmi ${dockerusername}/${imagename}:latest
 				exit
                     		EOF
 			"""
